@@ -11,7 +11,10 @@ cleaning up the data set
 ml_data <- movies_data %>%
   select(budget, revenue, runtime, vote_average, vote_count) %>%
   distinct() %>%
-  na.omit()
+  na.omit() %>%
+  filter(budget != 0 & revenue != 0 & runtime != 0 & vote_average != 0 & vote_count != 0)
+
+
 ```
 
 Modeling
@@ -84,21 +87,21 @@ result_final
 
 ```{r}
 pred <- bind_cols(data_test, result_final) %>%
-        select(sales, .pred)
+        select(revenue, .pred)
 pred
 ```
 
 ```{r}
 # Calculate RMSE
 result_metrics <- pred %>%
-        rmse(truth = sales, estimate = .pred)
+        rmse(truth = revenue, estimate = .pred)
 result_metrics
 ```
 
 ```{r}
 pred %>%
         ggplot() +
-        geom_line(aes(sales, .pred), col = "blue3")
+        geom_line(aes(revenue, .pred), col = "blue3")
 ```
 
 
