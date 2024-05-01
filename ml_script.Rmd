@@ -14,7 +14,6 @@ ml_data <- movies_data %>%
   na.omit() %>%
   filter(budget != 0 & revenue != 0 & runtime != 0 & vote_average != 0 & vote_count != 0)
 
-
 ```
 
 Modeling
@@ -52,15 +51,19 @@ ml_rec
 
 Setting the Model Specifications
 ```{r}
+
 # Model: Linear Regression using parsnip
-ml_model <- linear_reg() %>% 
-        set_mode("regression") %>%
-        set_engine("lm")
-ml_model
+ml_model <- rand_forest() %>%
+  set_engine('ranger') %>%
+  set_mode('regression')
+
+# RSE can be found in the summary of a model.
+summary(ml_model)
 ```
 
 Creating a worflow to bind preprocessor and model
 ```{r}
+library(rules)
 # Workflow using workflow
 ml_wf <- workflow() %>%
         add_recipe(ml_rec) %>%
