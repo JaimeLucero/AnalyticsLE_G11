@@ -68,12 +68,26 @@ ui <- fluidPage(
         margin-left: -20px; 
         margin-top: -45px; 
       }
+      .subtitle2-dashboard {
+        background-color: #fffff;
+        font-family: 'Karla', sans-serif;
+        padding: 10px;
+        margin-left: -20px; 
+        margin-top: -45px; 
+      }
       .title-span {
         font-size: 20px; 
       }
       .subtitle-span {
-        font-size: 14px; 
+        font-size: 14px;
+        font-weight: 600;
       }
+      .subtitle2-span {
+        font-size: 14px;
+      }
+      .paragraph-indent {
+        text-indent: 20px; 
+    }
       .main-content {
         flex: 1;
         padding: 10px;
@@ -109,21 +123,24 @@ server <- function(input, output, session) {
     na.omit()
   
   # Function to generate dashboard content
-  generateDashboardContent <- function(title, desc) {
+  generateDashboardContent <- function(title, subtitle2, desc) {
     div(
       class = "dashboard-content",
       div(class = "title-dashboard",
           span(class = "title-span", title)),
       br(),
       div(class = "subtitle-dashboard",
-          span(class = "subtitle-span", desc))
+          span(class = "subtitle-span", subtitle2)),
+      br(),
+      div(class = "subtitle2-dashboard",
+          span(class = "subtitle2-span", desc))
     )
   }
   
   # Initial rendering of charts upon app startup and when btn_dashboard is pressed
   output$dashboardContent <- renderUI({
     div(
-      generateDashboardContent("Movies Data", "Overview of Different movies over the years."),
+      generateDashboardContent("Movies Data", "", "Overview of Different movies over the years."),
       # Additional elements below the dashboard content
       selectInput("year_dropdown", label = "Select year:", choices = unique(substr(movies_data$release_date, 1, 4))),
       # Card
@@ -234,14 +251,38 @@ server <- function(input, output, session) {
   
   observeEvent(input$btn_analytics, {
     output$dashboardContent <- renderUI({
-      generateDashboardContent("Movie Revenue Prediction Model",  "Overview of Different movies over the years.")
+      generateDashboardContent("Movie Revenue Prediction Model", "", "Overview of Different movies over the years.")
     })
   })
   
   observeEvent(input$btn_about, {
     output$dashboardContent <- renderUI({
       div(
-        generateDashboardContent("About", "This is an about page.")
+        generateDashboardContent("About", "", ""),
+        br(), # Add line break here
+        div(class = "about-body",
+            h5(class = "overview-part", "Overview",
+               style = "font-weight: 600;"),
+            p("Our dashboard is a comprehensive platform designed to provide users in the film industry with insights for strategic decision-making whether you're a studio executive, producer, marketer, or investor, or just a simple person that dreams to make a hit movie, this dahsboard leverages advanced analytics techniques to unlock valuable insights from movie data.", class = "paragraph-indent")
+        ),
+        br(),
+        div(class = "about-body",
+            h5(class = "data-source-info", "Data Source and Information",
+               style = "font-weight: 600;"),
+            p("The dataset used in our dashboard is sourced form Kaggle, a leading platform for data science and machine learning resources. Maintained by Akshay Pawar, this dataset provides comprehensive information about millions of movies. Derived from the TMDB API, the dataset includes a wide range of attributes such as movie titles, genres, release dates, budgets, revenues, and more, all formatted into a structured CSV file for ease of analysis. It also used random forest model and ranger engine with 81622367 estimate RMSE value.", class = "paragraph-indent")
+        ),
+        br(),
+        div(class = "about-body",
+            h5(class = "dataset-link", "Dataset Link",
+               style = "font-weight: 600;"),
+            a("https://www.kaggle.com/datasets/akshaypawar7/millions-of-movies?fbclid=IwAR0BeE1U0XtArT-mDUSTRO3yMdH15rrVa9QBoDjdSZqYeYmEWGa1SJDv8Ws"),
+        ),
+        br(),
+        div(class = "about-body",
+            h5(class = "dash-dev-team", "Dashboard Development Team:",
+               style = "font-weight: 600;"),
+            p("The dashboard was developed by a dedicated team of 3, namely, Sharil Mives Catillo, jaime Emanuel Lucero, and Yza Prochina. We are 2nd year Bachelor of Science in Computer Science (BSCS) students. Combining each other's expertise, the team designed and implemented the dashboard to meet the specific needs and challenges faced by users in the film industry. This dashboard is for the developer's Learning Evidence in their Data Analytics - Stat Using R subject.", class = "paragraph-indent")
+        )
       )
     })
   })
