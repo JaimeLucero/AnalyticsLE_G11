@@ -6,7 +6,6 @@ library(plotly)
 
 movies_data <- read.csv("movies.csv")
 
-
 ui <- fluidPage(
   tags$head(
     tags$style(HTML("
@@ -14,6 +13,8 @@ ui <- fluidPage(
         background-color: #5A00B8;
         color: #fff;
         padding: 10px;
+        height: 100px;
+        width: 180vh;
         font-family: 'Karla', sans-serif;
         font-weight: bold;
         text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
@@ -22,7 +23,8 @@ ui <- fluidPage(
         margin-right: -20px;
       }
       .header-text {
-        margin-left: 20px; 
+        margin-left: 50px;
+        margin-top: -500px;
       }
       .content {
         display: flex;
@@ -34,7 +36,7 @@ ui <- fluidPage(
         font-family: 'Karla', sans-serif;
         font-weight: 600;
         width: 200px;
-        height: 100vh;
+        height: 180vh;
         display: flex;
         flex-direction: column;
         margin-left: -20px;
@@ -56,14 +58,14 @@ ui <- fluidPage(
         font-family: 'Karla', sans-serif;
         font-weight: 600;
         padding: 10px;
-        margin-left: -15px; 
+        margin-left: -20px; 
         margin-top: -50px; 
       }
       .subtitle-dashboard {
         background-color: #fffff;
         font-family: 'Karla', sans-serif;
         padding: 10px;
-        margin-left: -15px; 
+        margin-left: -20px; 
         margin-top: -45px; 
       }
       .title-span {
@@ -117,9 +119,150 @@ server <- function(input, output, session) {
           span(class = "subtitle-span", desc))
     )
   }
-    
-    
+  
+  # Initial rendering of charts upon app startup and when btn_dashboard is pressed
+  output$dashboardContent <- renderUI({
+    div(
+      generateDashboardContent("Movies Data", "Overview of Different movies over the years."),
+      # Additional elements below the dashboard content
+      selectInput("year_dropdown", label = "Select year:", choices = unique(substr(movies_data$release_date, 1, 4))),
+      # Card
+      div(class = "genre-revenue-card",
+          style = "background-color: #E0E0E0;
+        height: 500px;
+        width: 600;
+        border-radius: 30px;
+        box-shadow: 0 4px 4px rgba(0, 0, 0, 0.3)",
+          div(class = "card-body",
+              h4(class = "card-title", "Average Revenue for Each Genre",
+                 style = "padding: 10px 15px;"),
+              div(
+                style = "background-color: #E0E0E0;", # Set background color of the plot area
+                plotlyOutput("piechart", height = "400px")
+              )
+          )
+      ),
+      div(class = "monthly-revenue-card",
+          style = "background-color: #E0E0E0;
+        height: 500px;
+        width: 600;
+        border-radius: 30px;
+        box-shadow: 0 4px 4px rgba(0, 0, 0, 0.3)",
+          div(class = "card-body",
+              h4(class = "card-title", "Monthly Movie Revenue",
+                 style = "padding: 10px 15px;"),
+              div(
+                style = "background-color: #E0E0E0;", # Set background color of the plot area
+                plotlyOutput("linechart", height = "400px")
+              )
+          )
+      ),
+      div(class = "genre-popularity-card",
+          style = "background-color: #E0E0E0;
+        height: 500px;
+        width: 600;
+        border-radius: 30px;
+        box-shadow: 0 4px 4px rgba(0, 0, 0, 0.3)",
+          div(class = "card-body",
+              h4(class = "card-title", "Monthly Movie Revenue",
+                 style = "padding: 10px 15px;"),
+              div(
+                style = "background-color: #E0E0E0;", # Set background color of the plot area
+                plotlyOutput("barchart", height = "400px")
+              )
+          )
+      )
+    )
+  })
+  
+  # Render all charts when btn_dashboard is pressed
+  observeEvent(input$btn_dashboard, {
+    output$dashboardContent <- renderUI({
+      div(
+        generateDashboardContent("Movies Data", "Overview of Different movies over the years."),
+        # Additional elements below the dashboard content
+        selectInput("year_dropdown", label = "Select year:", choices = unique(substr(movies_data$release_date, 1, 4))),
+        # Card
+        div(class = "genre-revenue-card",
+            style = "background-color: #E0E0E0;
+          height: 500px;
+          width: 600;
+          border-radius: 30px;
+          box-shadow: 0 4px 4px rgba(0, 0, 0, 0.3)",
+            div(class = "card-body",
+                h4(class = "card-title", "Average Revenue for Each Genre",
+                   style = "padding: 10px 15px;"),
+                div(
+                  style = "background-color: #E0E0E0;", # Set background color of the plot area
+                  plotlyOutput("piechart", height = "400px")
+                )
+            )
+        ),
+        div(class = "monthly-revenue-card",
+            style = "background-color: #E0E0E0;
+          height: 500px;
+          width: 600;
+          border-radius: 30px;
+          box-shadow: 0 4px 4px rgba(0, 0, 0, 0.3)",
+            div(class = "card-body",
+                h4(class = "card-title", "Monthly Movie Revenue",
+                   style = "padding: 10px 15px;"),
+                div(
+                  style = "background-color: #E0E0E0;", # Set background color of the plot area
+                  plotlyOutput("linechart", height = "400px")
+                )
+            )
+        ),
+        div(class = "genre-popularity-card",
+            style = "background-color: #E0E0E0;
+          height: 500px;
+          width: 600;
+          border-radius: 30px;
+          box-shadow: 0 4px 4px rgba(0, 0, 0, 0.3)",
+            div(class = "card-body",
+                h4(class = "card-title", "Monthly Movie Revenue",
+                   style = "padding: 10px 15px;"),
+                div(
+                  style = "background-color: #E0E0E0;", # Set background color of the plot area
+                  plotlyOutput("barchart", height = "400px")
+                )
+            )
+        )
+      )
+    })
+  })
+  
+  observeEvent(input$btn_analytics, {
+    output$dashboardContent <- renderUI({
+      generateDashboardContent("Movie Revenue Prediction Model",  "Overview of Different movies over the years.")
+    })
+  })
+  
+  observeEvent(input$btn_about, {
+    output$dashboardContent <- renderUI({
+      div(
+        generateDashboardContent("About", "This is an about page.")
+      )
+    })
+  })
+  
+  # Function to render the pie chart
   output$piechart <- renderPlotly({
+    render_piechart()
+  })
+  
+  # Function to render the line chart
+  output$linechart <- renderPlotly({
+    render_linechart()
+  })
+  
+  # Function to render the bar chart
+  output$barchart <- renderPlotly({
+    render_barchart()
+  })
+  
+  # Function to render the pie chart
+  render_piechart <- function() {
     # Filter the data based on the selected year
     filtered_data <- movies_data %>%
       filter(substr(release_date, 1, 4) == input$year_dropdown & revenue != 0 & !is.na(revenue)) %>%
@@ -134,7 +277,6 @@ server <- function(input, output, session) {
     average_revenue <- unnested_data %>%
       group_by(genres) %>%
       summarise(average_revenue = mean(revenue, na.rm = TRUE))
-  
     
     # Plot the pie chart
     plot_ly(average_revenue, labels = ~genres, values = ~average_revenue, type = "pie") %>%
@@ -142,9 +284,10 @@ server <- function(input, output, session) {
         paper_bgcolor = "rgba(0,0,0,0)",  # Set background color to transparent
         plot_bgcolor = "rgba(0,0,0,0)"  # Set plot area background color to transparent
       )
-  })
+  }
   
-  output$linechart <- renderPlotly({
+  # Function to render the line chart
+  render_linechart <- function() {
     # Filter the data based on the selected year
     filtered_data <- movies_data %>%
       filter(substr(release_date, 1, 4) == input$year_dropdown & revenue != 0 & !is.na(revenue)) %>%
@@ -169,9 +312,10 @@ server <- function(input, output, session) {
         paper_bgcolor = "rgba(0,0,0,0)",  # Set background color to transparent
         plot_bgcolor = "rgba(0,0,0,0)"    # Set plot area background color to transparent
       )
-  })
+  }
   
-  output$barchart <- renderPlotly({
+  # Function to render the bar chart
+  render_barchart <- function() {
     # Filter the data based on the selected year
     filtered_data <- movies_data %>%
       filter(substr(release_date, 1, 4) == input$year_dropdown & popularity != 0 & !is.na(popularity)) %>%
@@ -195,89 +339,7 @@ server <- function(input, output, session) {
         paper_bgcolor = "rgba(0,0,0,0)",  # Set background color to transparent
         plot_bgcolor = "rgba(0,0,0,0)"    # Set plot area background color to transparent
       )
-  })
-  
-  
-  
-  # Update dashboard content by default
-  output$dashboardContent <- renderUI({
-    div(
-      generateDashboardContent("Movies Data", "Overview of Different movies over the years."),
-      # Additional elements below the dashboard content
-          selectInput("year_dropdown", label = "Select year:", choices = unique(substr(movies_data$release_date, 1, 4))),
-      # Card
-      div(class = "genre-revenue-card",
-          style = "background-color: #E0E0E0;
-                  height: 500px;
-                  width: 600;
-                  border-radius: 30px;
-                  box-shadow: 0 4px 4px rgba(0, 0, 0, 0.3)",
-          div(class = "card-body",
-              h4(class = "card-title", "Average Reveue for Each Genre",
-                 style = "padding: 10px 15px;"),
-              div(
-                style = "background-color: #E0E0E0;", # Set background color of the plot area
-                plotlyOutput("piechart", height = "400px")
-              )
-          )
-      ),
-      div(class = "monthly-revenue-card",
-          style = "background-color: #E0E0E0;
-                  height: 500px;
-                  width: 600;
-                  border-radius: 30px;
-                  box-shadow: 0 4px 4px rgba(0, 0, 0, 0.3)",
-          div(class = "card-body",
-              h4(class = "card-title", "Montly Movie Revenue",
-                 style = "padding: 10px 15px;"),
-              div(
-                style = "background-color: #E0E0E0;", # Set background color of the plot area
-                plotlyOutput("linechart", height = "400px")
-              )
-          )
-      ),
-      div(class = "genre-popularity-card",
-          style = "background-color: #E0E0E0;
-                  height: 500px;
-                  width: 600;
-                  border-radius: 30px;
-                  box-shadow: 0 4px 4px rgba(0, 0, 0, 0.3)",
-          div(class = "card-body",
-              h4(class = "card-title", "Montly Movie Revenue",
-                 style = "padding: 10px 15px;"),
-              div(
-                style = "background-color: #E0E0E0;", # Set background color of the plot area
-                plotlyOutput("barchart", height = "400px")
-              )
-          )
-      ),
-    )
-  })
-  
-  # Update the placeholder with the pie chart
-  observe({
-    output$pie_chart_placeholder <- renderPlot({
-      output$piechart
-    })
-  })
-  
-  # Update dashboard content when btn_dashboard is pressed
-  observeEvent(input$btn_dashboard, {
-    output$dashboardContent <- renderUI({
-      generateDashboardContent("Movies Data", "Overview of Different movies over the years.")
-    })
-  })
-  
-    
-  observeEvent(input$btn_analytics, {
-    output$dashboardContent <- renderUI({
-      generateDashboardContent("Movie Revenue Prediction Model",  "Overview of Different movies over the years.")
-    })
-  })
-  
-  observeEvent(input$btn_about, {
-    
-  })
+  }
 }
 
 shinyApp(ui = ui, server = server)
