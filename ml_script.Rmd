@@ -1,4 +1,5 @@
 importing the data set
+
 ```{r}
 library(tidyverse)
 
@@ -7,6 +8,7 @@ movies_data <- read.csv("movies.csv")
 ```
 
 cleaning up the data set
+
 ```{r}
 ml_data <- movies_data %>%
   select(budget, revenue, runtime, vote_average, vote_count) %>%
@@ -17,11 +19,13 @@ ml_data <- movies_data %>%
 ```
 
 Modeling
+
 ```{r}
 library(tidymodels)
 ```
 
 Splitting the data into training and testing sets
+
 ```{r}
 # Data Splitting using rsample
 set.seed(18)
@@ -42,6 +46,7 @@ data_test
 ```
 
 Setting a recipe for preprocessing and feature engineering
+
 ```{r}
 # Recipe using recipe
 ml_rec <- recipe(revenue ~ ., data = data_train) %>%
@@ -50,6 +55,7 @@ ml_rec
 ```
 
 Setting the Model Specifications
+
 ```{r}
 
 # Model: Linear Regression using parsnip
@@ -62,6 +68,7 @@ summary(ml_model)
 ```
 
 Creating a worflow to bind preprocessor and model
+
 ```{r}
 library(rules)
 # Workflow using workflow
@@ -72,6 +79,7 @@ ml_wf
 ```
 
 Training the model on the train set
+
 ```{r}
 # Training
 ml_trained <- ml_wf %>%
@@ -79,8 +87,8 @@ ml_trained <- ml_wf %>%
 ml_trained
 ```
 
-Evaluating Model on the test set
-The Root Mean Squared Error (RMSE) is one of the two main performance indicators for a regression model. It measures the average difference between values predicted by a model and the actual values. It provides an estimation of how well the model is able to predict the target value (accuracy).
+Evaluating Model on the test set The Root Mean Squared Error (RMSE) is one of the two main performance indicators for a regression model. It measures the average difference between values predicted by a model and the actual values. It provides an estimation of how well the model is able to predict the target value (accuracy).
+
 ```{r}
 # Predict the test set
 result_final <- ml_trained %>%
@@ -107,9 +115,6 @@ pred %>%
         geom_line(aes(revenue, .pred), col = "blue3")
 ```
 
-
-
-
-
-
-
+```{r}
+saveRDS(ml_trained,file = "model.rds")
+```

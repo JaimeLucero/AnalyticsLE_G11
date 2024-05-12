@@ -3,6 +3,9 @@ library(ggplot2)
 library(tidyverse)
 library(tidyr)
 library(plotly)
+library(rvest)  
+library(rmarkdown)
+library(tidymodels)
 
 movies_data <- read.csv("movies.csv")
 
@@ -181,7 +184,7 @@ server <- function(input, output, session) {
         border-radius: 30px;
         box-shadow: 0 4px 4px rgba(0, 0, 0, 0.3)",
           div(class = "card-body",
-              h4(class = "card-title", "Monthly Movie Revenue",
+              h4(class = "card-title", "Genre Popularity",
                  style = "padding: 10px 15px;"),
               div(
                 style = "background-color: #E0E0E0;", # Set background color of the plot area
@@ -194,18 +197,19 @@ server <- function(input, output, session) {
   
   # Render all charts when btn_dashboard is pressed
   observeEvent(input$btn_dashboard, {
+    # Initial rendering of charts upon app startup and when btn_dashboard is pressed
     output$dashboardContent <- renderUI({
       div(
-        generateDashboardContent("Movies Data", "Overview of Different movies over the years."),
+        generateDashboardContent("Movies Data", "", "Overview of Different movies over the years."),
         # Additional elements below the dashboard content
         selectInput("year_dropdown", label = "Select year:", choices = unique(substr(movies_data$release_date, 1, 4))),
         # Card
         div(class = "genre-revenue-card",
             style = "background-color: #E0E0E0;
-          height: 500px;
-          width: 600;
-          border-radius: 30px;
-          box-shadow: 0 4px 4px rgba(0, 0, 0, 0.3)",
+        height: 500px;
+        width: 600;
+        border-radius: 30px;
+        box-shadow: 0 4px 4px rgba(0, 0, 0, 0.3)",
             div(class = "card-body",
                 h4(class = "card-title", "Average Revenue for Each Genre",
                    style = "padding: 10px 15px;"),
@@ -217,12 +221,12 @@ server <- function(input, output, session) {
         ),
         div(class = "monthly-revenue-card",
             style = "background-color: #E0E0E0;
-          height: 500px;
-          width: 600;
-          border-radius: 30px;
-          box-shadow: 0 4px 4px rgba(0, 0, 0, 0.3)",
+        height: 500px;
+        width: 600;
+        border-radius: 30px;
+        box-shadow: 0 4px 4px rgba(0, 0, 0, 0.3)",
             div(class = "card-body",
-                h4(class = "card-title", "Monthly Movie Revenue",
+                h4(class = "card-title", "Genre Popularity",
                    style = "padding: 10px 15px;"),
                 div(
                   style = "background-color: #E0E0E0;", # Set background color of the plot area
@@ -232,10 +236,10 @@ server <- function(input, output, session) {
         ),
         div(class = "genre-popularity-card",
             style = "background-color: #E0E0E0;
-          height: 500px;
-          width: 600;
-          border-radius: 30px;
-          box-shadow: 0 4px 4px rgba(0, 0, 0, 0.3)",
+        height: 500px;
+        width: 600;
+        border-radius: 30px;
+        box-shadow: 0 4px 4px rgba(0, 0, 0, 0.3)",
             div(class = "card-body",
                 h4(class = "card-title", "Monthly Movie Revenue",
                    style = "padding: 10px 15px;"),
@@ -251,7 +255,50 @@ server <- function(input, output, session) {
   
   observeEvent(input$btn_analytics, {
     output$dashboardContent <- renderUI({
-      generateDashboardContent("Movie Revenue Prediction Model", "", "Overview of Different movies over the years.")
+      div(
+        generateDashboardContent("Movie Revenue Prediction Model", "", "Overview of Different movies over the years."),
+        div(class = "monthly-revenue-card",
+            style = "background-color: #E0E0E0;
+                    height: 500px;
+                    width: 600;
+                    border-radius: 30px;
+                    box-shadow: 0 4px 4px rgba(0, 0, 0, 0.3)",
+            div(
+              class = "card-body",
+              h4(class = "card-title", "Enter values to predict revenue:", style = "padding: 10px 15px;"),
+              fluidRow(
+                column(6,
+                       textInput("budget_input", label = "Budget: ", placeholder = "Enter budget value", value = "", width = "80%"),
+                       style = "padding: 10px;" # Additional style for padding
+                ),
+                column(6,
+                       textInput("runtime_input", label = "Runtime: ", placeholder = "Enter runtime value", value = "", width = "80%"),
+                       style = "padding: 10px;" # Additional style for padding
+                ),
+                style = "padding-left: 20px"
+              ),
+              fluidRow(
+                column(6,
+                       textInput("voteavg_input", label = "Vote average: ", placeholder = "Enter vote average value", value = "", width = "80%"),
+                       style = "padding: 10px;" # Additional style for padding
+                ),
+                column(6,
+                       textInput("votecnt_input", label = "Vote count: ", placeholder = "Enter vote count value", value = "", width = "80%"),
+                       style = "padding: 10px;" # Additional style for padding
+                ),
+                style = "padding-left: 20px"
+              ),
+              div(
+                actionButton("predict_btn", "Predict"),
+                style = "padding-left: 20px"
+              ),
+              tableOutput("prediction_table"),
+              div(
+                style = "background-color: #E0E0E0;", # Set background color of the plot area
+              )
+            )
+        ),
+      )
     })
   })
   
@@ -381,6 +428,58 @@ server <- function(input, output, session) {
         plot_bgcolor = "rgba(0,0,0,0)"    # Set plot area background color to transparent
       )
   }
+  
+  observeEvent(input$predict_btn, {
+    # Convert input values to numeric and check for NA values
+    if (anyNA(as.numeric(input$budget_input)) ||
+        anyNA(as.numeric(input$runtime_input)) ||
+        anyNA(as.numeric(input$voteavg_input)) ||
+        anyNA(as.numeric(input$votecnt_input))) {
+      # Show a message or take any appropriate action for invalid input
+      showModal(modalDialog(
+        title = "Invalid Input",
+        "Please enter valid numeric values for all input fields.",
+        easyClose = TRUE
+      ))
+      return(NULL) # Stop further execution
+    }
+    
+    
+    datainput <- reactive({
+      info <- data.frame(
+        budget = as.numeric(input$budget_input), # Convert to numeric
+        runtime = as.numeric(input$runtime_input), # Convert to numeric
+        voteavg = as.numeric(input$voteavg_input), # Convert to numeric
+        votecnt = as.numeric(input$votecnt_input) # Convert to numeric
+      )
+      colnames(info) <- c(
+        "budget",
+        "runtime",
+        "vote_average",
+        "vote_count"
+      )
+      as_tibble(info)
+      return(info)
+    })
+    
+    
+    ldamodel <- readRDS("./model.rds")
+    predicted <- augment(ldamodel, datainput())
+    
+    # Render the prediction table
+    output$prediction <- renderTable({
+      predicted |> 
+        select(-budget, -runtime, -votecnt, -voteavg, predicted_revenue = .pred)
+    })
+    
+    # Render the prediction values
+    output$prediction_table <- renderTable({
+      predicted |> 
+        select(predicted_revenue = .pred)
+    })
+  })
+  
+  
 }
 
 shinyApp(ui = ui, server = server)
