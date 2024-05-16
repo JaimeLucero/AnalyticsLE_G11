@@ -1,13 +1,15 @@
 library(shiny)
-library(ggplot2)
-library(tidyverse)
-library(tidyr)
 library(plotly)
-library(rvest)  
-library(rmarkdown)
-library(tidymodels)
+library(data.table)
 
-movies_data <- read.csv("movies.csv")
+# Instead of using read.csv, use fread from data.table
+large_data <- fread("new_movies.csv")
+
+# Remove unnecessary columns
+movies_data <- large_data[, .(genres, popularity, release_date, budget, revenue, runtime, status, vote_average, vote_count)]
+
+rm(unused_object)
+gc()
 
 ui <- fluidPage(
   tags$head(
