@@ -178,21 +178,6 @@ server <- function(input, output, session) {
                 plotlyOutput("linechart", height = "400px")
               )
           )
-      ),
-      div(class = "genre-popularity-card",
-          style = "background-color: #E0E0E0;
-        height: 500px;
-        width: 600;
-        border-radius: 30px;
-        box-shadow: 0 4px 4px rgba(0, 0, 0, 0.3)",
-          div(class = "card-body",
-              h4(class = "card-title", "Genre Popularity",
-                 style = "padding: 10px 15px;"),
-              div(
-                style = "background-color: #E0E0E0;", # Set background color of the plot area
-                plotlyOutput("barchart", height = "400px")
-              )
-          )
       )
     )
   })
@@ -233,21 +218,6 @@ server <- function(input, output, session) {
                 div(
                   style = "background-color: #E0E0E0;", # Set background color of the plot area
                   plotlyOutput("linechart", height = "400px")
-                )
-            )
-        ),
-        div(class = "genre-popularity-card",
-            style = "background-color: #E0E0E0;
-        height: 500px;
-        width: 600;
-        border-radius: 30px;
-        box-shadow: 0 4px 4px rgba(0, 0, 0, 0.3)",
-            div(class = "card-body",
-                h4(class = "card-title", "Monthly Movie Revenue",
-                   style = "padding: 10px 15px;"),
-                div(
-                  style = "background-color: #E0E0E0;", # Set background color of the plot area
-                  plotlyOutput("barchart", height = "400px")
                 )
             )
         )
@@ -346,11 +316,6 @@ server <- function(input, output, session) {
     render_linechart()
   })
   
-  # Function to render the bar chart
-  output$barchart <- renderPlotly({
-    render_barchart()
-  })
-  
   # Function to render the pie chart
   render_piechart <- function() {
     # Filter the data based on the selected year
@@ -404,32 +369,6 @@ server <- function(input, output, session) {
       )
   }
   
-  # Function to render the bar chart
-  render_barchart <- function() {
-    # Filter the data based on the selected year
-    filtered_data <- movies_data %>%
-      filter(substr(release_date, 1, 4) == input$year_dropdown & popularity != 0 & !is.na(popularity)) %>%
-      na.omit()
-    
-    # Unnest the genre column to have one row per genre
-    unnested_data <- filtered_data %>%
-      mutate(genres = strsplit(genres, "-")) %>%
-      unnest(genres)
-    
-    # Calculate the average popularity for each unique genre
-    average_popularity <- unnested_data %>%
-      group_by(genres) %>%
-      summarise(average_popularity = mean(popularity, na.rm = TRUE))
-    
-    # Plot the bar chart
-    plot_ly(average_popularity, x = ~genres, y = ~average_popularity, type = "bar") %>%
-      layout( 
-        xaxis = list(title = "Genre"),
-        yaxis = list(title = "Average Popularity"),
-        paper_bgcolor = "rgba(0,0,0,0)",  # Set background color to transparent
-        plot_bgcolor = "rgba(0,0,0,0)"    # Set plot area background color to transparent
-      )
-  }
   
   observeEvent(input$predict_btn, {
     # Convert input values to numeric and check for NA values

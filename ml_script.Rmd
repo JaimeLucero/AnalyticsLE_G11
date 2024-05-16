@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 importing the data set
 
 ```{r}
@@ -118,3 +119,18 @@ pred %>%
 ```{r}
 saveRDS(ml_trained,file = "model.rds")
 ```
+=======
+```{r}
+library(tidyverse)
+
+movies_data <- read_csv("movies.csv")
+
+```
+```{r}
+mldata <- movies_data %>%
+  select(-overview, -production_companies, -tagline, -poster_path, -backdrop_path, -recommendations, -keywords) %>%
+  distinct() %>%
+  na.omit()
+```
+
+>>>>>>> ded67b3 (init ml)
