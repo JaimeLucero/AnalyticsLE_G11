@@ -1,5 +1,9 @@
 library(shiny)
 library(plotly)
+library(tidyr)
+library(dplyr)
+library(ranger)
+library(tidymodels)
 library(data.table)
 
 # Instead of using read.csv, use fread from data.table
@@ -8,7 +12,6 @@ large_data <- fread("new_movies.csv")
 # Remove unnecessary columns
 movies_data <- large_data[, .(genres, popularity, release_date, budget, revenue, runtime, status, vote_average, vote_count)]
 
-rm(unused_object)
 gc()
 
 ui <- fluidPage(
@@ -19,7 +22,7 @@ ui <- fluidPage(
         color: #fff;
         padding: 10px;
         height: 100px;
-        width: 180vh;
+        width: 100vw;
         font-family: 'Karla', sans-serif;
         font-weight: bold;
         text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
@@ -41,7 +44,7 @@ ui <- fluidPage(
         font-family: 'Karla', sans-serif;
         font-weight: 600;
         width: 200px;
-        height: 180vh;
+        height: 130vh;
         display: flex;
         flex-direction: column;
         margin-left: -20px;
@@ -100,7 +103,7 @@ ui <- fluidPage(
     "))
   ),
   div(class = "header-banner",
-      tags$span(class = "header-text", "Movie Metadata")  
+      tags$span(class = "header-text", "Movie Revenue Metadata")  
   ),
   div(class = "content",
       absolutePanel(
@@ -169,6 +172,7 @@ server <- function(input, output, session) {
         height: 500px;
         width: 600;
         border-radius: 30px;
+        margin-top: 20px;
         box-shadow: 0 4px 4px rgba(0, 0, 0, 0.3)",
           div(class = "card-body",
               h4(class = "card-title", "Monthly Movie Revenue",
@@ -211,6 +215,7 @@ server <- function(input, output, session) {
         height: 500px;
         width: 600;
         border-radius: 30px;
+        margin-top: 20px;
         box-shadow: 0 4px 4px rgba(0, 0, 0, 0.3)",
             div(class = "card-body",
                 h4(class = "card-title", "Genre Popularity",
@@ -405,18 +410,23 @@ server <- function(input, output, session) {
     
     
     ldamodel <- readRDS("./model.rds")
-    predicted <- augment(ldamodel, datainput())
+    # Generate predictions using the model and the input data
+    predictions <- predict(ldamodel, new_data = datainput(), type = "numeric")
+    
+    # Combine the predictions with the original data
+    predicted <- datainput() %>%
+      mutate(predicted_revenue = predictions)
     
     # Render the prediction table
     output$prediction <- renderTable({
-      predicted |> 
-        select(-budget, -runtime, -votecnt, -voteavg, predicted_revenue = .pred)
+      predicted %>% 
+        select(-budget, -runtime, -votecnt, -voteavg, predicted_revenue)
     })
     
     # Render the prediction values
     output$prediction_table <- renderTable({
-      predicted |> 
-        select(predicted_revenue = .pred)
+      predicted %>% 
+        select(predicted_revenue)
     })
   })
   

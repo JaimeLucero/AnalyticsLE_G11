@@ -5,6 +5,6 @@ account: jaime-lucero
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 11998683
-bundleId:
+bundleId: 8630801
 url: https://jaime-lucero.shinyapps.io/analyticsle_g11/
 version: 1
